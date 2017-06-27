@@ -23,7 +23,7 @@ namespace Carver
         private const string sql_v1_users_create = "CREATE TABLE IF NOT EXISTS 'users' + " +
             @"(
                 id INTEGER PRIMARY KEY,
-                username TEXT NOT NULL, 
+                username TEXT UNIQUE, 
                 email TEXT NOT NULL,
                 hashed_password TEXT NOT NULL, 
                 salt TEXT NOT NULL,
