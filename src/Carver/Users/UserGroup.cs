@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Carver.DataStore.DataTypes
-{
+namespace Carver.Users
+{ 
     internal enum UserGroup
     {
         admin,
