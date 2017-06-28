@@ -21,8 +21,8 @@ namespace Carver.API
         {
             var authConfiguration = new StatelessAuthenticationConfiguration(nancyContext =>
                 {
-                    var apiKey = (string)nancyContext.Request.Query.ApiKey?.Value;
-                    return SessionTokens.GetUserFromApiKey(apiKey).Result;
+                    var apiKey = (string)nancyContext.Request.Query.api_token?.Value;
+                    return SessionTokens.GetUserClaimsFromApiKey(apiKey).Result;
                 });
 
             AllowAccessToConsumingSite(pipelines);

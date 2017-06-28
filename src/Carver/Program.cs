@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using Carver.API;
+using Carver.DataStore;
+using Carver.Users;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 

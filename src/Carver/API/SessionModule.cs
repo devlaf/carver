@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Nancy;
-using Nancy.Security;
+﻿using Nancy;
 
 namespace Carver.API
 {

@@ -16,14 +16,11 @@ namespace Carver.API
 
         public TokenModule() : base("/tokens")
         {
-            this.RequiresHttps();
+            //this.RequiresHttps();
 
             var checkForClaims = new Func<Claim, List<UserGroup>, bool>((claim, allowed) =>
             {
-                if (claim.Type != ClaimTypes.Role)
-                    return false;
-
-                return allowed.Select(x => Enum.GetName(typeof(UserGroup), x)).Contains(claim.Value);
+                return allowed.Select(x => Enum.GetName(typeof(UserGroup), x)).Contains(claim.Subject.AuthenticationType);
             });
 
             Post("/", async (ctx, ct) =>
@@ -32,21 +29,20 @@ namespace Carver.API
 
                 try
                 {
-                    await TokenActions.CreateNewToken(this.Request.Form.Description);
+                    var token = await TokenActions.CreateNewToken(this.Request.Form.Description);
+                    return token;
                 }
                 catch (Exception)
                 {
                     return HttpStatusCode.InternalServerError;
                 }
-
-                return HttpStatusCode.OK;
             });
 
             Get("/{token}", async (ctx, ct) =>
             {
                 this.RequiresClaims(c => checkForClaims(c, new List<UserGroup> { UserGroup.validator, UserGroup.admin }));
 
-                if (await TokenActions.ValidTokenExists(ctx.username))
+                if (await TokenActions.ValidTokenExists(ctx["token"]))
                     return HttpStatusCode.OK;
 
                 return HttpStatusCode.NotFound;

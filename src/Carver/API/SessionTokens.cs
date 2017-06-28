@@ -22,7 +22,7 @@ namespace Carver.API
 
         #endregion
 
-        public static async Task<ClaimsPrincipal> GetUserFromApiKey(string apiKey)
+        public static async Task<ClaimsPrincipal> GetUserClaimsFromApiKey(string apiKey)
         {
             if (apiKey == null)
                 return null;
