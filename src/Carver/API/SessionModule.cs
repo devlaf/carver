@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using Nancy.Security;
 
 namespace Carver.API
 {
@@ -6,7 +7,7 @@ namespace Carver.API
     {
         public SessionModule() : base("/sessions")
         {
-            //this.RequiresHttps();
+            this.RequiresHttps();
 
             Post("/", async (ctx, ct) =>
             {
