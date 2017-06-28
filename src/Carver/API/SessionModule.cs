@@ -10,17 +10,17 @@ namespace Carver.API
     {
         public SessionModule() : base("/sessions")
         {
-            this.RequiresHttps();
+            //this.RequiresHttps();
 
             Post("/", async (ctx, ct) =>
             {
-                var userName = this.Request.Form.UserName;
-                var password = this.Request.Form.Password;
+                var userName = this.Request.Form.username;
+                var password = this.Request.Form.password;
 
                 if (userName == null)
-                    return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "UserName field missing." };
+                    return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "username field missing." };
                 if (password == null)
-                    return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "Password field missing." };
+                    return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "password field missing." };
 
                 var token = await SessionTokens.ValidateUser((string)userName, (string)password);
                 if (token == null)

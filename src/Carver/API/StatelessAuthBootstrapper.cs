@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using log4net;
+using Microsoft.Extensions.Configuration;
 using Nancy;
 using Nancy.Authentication.Stateless;
 using Nancy.Bootstrapper;
@@ -9,6 +10,8 @@ namespace Carver.API
 {
     class StatelessAuthBootstrapper : DefaultNancyBootstrapper
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(StatelessAuthBootstrapper));
+
         /// <summary>
         /// I'm tentatively using nginx to manage ssl forwarding.  The below modification to the behavior of the 
         /// application bootstrapper enables Nancy to listen for the XForwardedProto header.  See 
@@ -18,7 +21,7 @@ namespace Carver.API
         {
             var authConfiguration = new StatelessAuthenticationConfiguration(nancyContext =>
                 {
-                    var apiKey = (string)nancyContext.Request.Query.ApiKey.Value;
+                    var apiKey = (string)nancyContext.Request.Query.ApiKey?.Value;
                     return SessionTokens.GetUserFromApiKey(apiKey).Result;
                 });
 
@@ -29,6 +32,11 @@ namespace Carver.API
 
         static void AllowAccessToConsumingSite(IPipelines pipelines)
         {
+            pipelines.OnError += (ctx, ex) => {
+                Log.Error("Internal Error: " + ex);
+                return null;
+            };
+
             pipelines.AfterRequest.AddItemToEndOfPipeline(x =>
             {
                 x.Response.Headers.Add("Access-Control-Allow-Origin", "*");

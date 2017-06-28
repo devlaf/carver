@@ -24,8 +24,10 @@ namespace Carver.API
 
         public static async Task<ClaimsPrincipal> GetUserFromApiKey(string apiKey)
         {
-            string username;
+            if (apiKey == null)
+                return null;
 
+            string username;
             if (!Tokens.TryGetValue(apiKey, out username))
                 return null;
 
