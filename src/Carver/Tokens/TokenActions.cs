@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Carver.DataStore;
-using Carver.Users;
 using log4net;
 
 namespace Carver.Tokens

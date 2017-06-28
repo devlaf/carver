@@ -57,6 +57,13 @@ namespace Carver.Users
             return await (UserAuthentication.ConfirmUserPassword(userCreds, password));
         }
 
+        public static async Task<User?> GetUser(string username)
+        {
+            IUserStore userStore = new PostgresDataStore();
+
+            return await userStore.GetUser(username);
+        }
+
         private static void ValidateEmail(string emailAddress)
         {
             if (!emailAddress.Contains("@"))  // Clearly I'm being very thorough.

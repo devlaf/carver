@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Carver.Users
 { 
-    internal enum UserGroup
+    public enum UserGroup
     {
         admin,
         user,
