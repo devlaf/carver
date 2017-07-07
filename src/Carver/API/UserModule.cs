@@ -16,7 +16,6 @@ namespace Carver.API
             this.RequiresHttps();
             this.RequiresClaims(c => c.Type == ClaimTypes.Role && c.Value == Enum.GetName(typeof(UserGroup), UserGroup.admin));
 
-            #region Post -- Create new User
             Func<string, string, string, Response> checkInputValidity = (_userName, _password, _email) =>
             {
                 if (_userName == null)
@@ -53,7 +52,6 @@ namespace Carver.API
 
                 return HttpStatusCode.OK;
             });
-            #endregion
 
             // TODO: Put -- Update User Info
         }

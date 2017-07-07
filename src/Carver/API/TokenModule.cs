@@ -16,7 +16,8 @@ namespace Carver.API
 
         public TokenModule() : base("/tokens")
         {
-            //this.RequiresHttps();
+            // This module deliberately does not require SSL, as the expectation is that any users authorized with 
+            // validate credentials is on the same physical machine.
 
             var checkForClaims = new Func<Claim, List<UserGroup>, bool>((claim, allowed) =>
             {
