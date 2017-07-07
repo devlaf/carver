@@ -31,16 +31,16 @@ namespace Carver.API
             Post("/", async (ctx, ct) =>
             {
 
-                dynamic userName = this.Request.Form.UserName;
-                dynamic password = this.Request.Form.Password;
-                dynamic email = this.Request.Form.Email;
+                dynamic username = this.Request.Form.username;
+                dynamic password = this.Request.Form.password;
+                dynamic email = this.Request.Form.email;
 
-                var verificationErrors = checkInputValidity(userName, password, email);
+                var verificationErrors = checkInputValidity(username, password, email);
                 if (verificationErrors != null) return verificationErrors;
 
                 try
                 {
-                    await UserActions.CreateNewUser(userName, password, email, UserGroup.user);
+                    await UserActions.CreateNewUser(username, password, email, UserGroup.user);
                 }
                 catch (Exception ex)
                 {
