@@ -8,9 +8,9 @@ using Nancy.TinyIoc;
 
 namespace Carver.API
 {
-    class StatelessAuthBootstrapper : DefaultNancyBootstrapper
+    partial class ApplicationBootstrapper : DefaultNancyBootstrapper
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(StatelessAuthBootstrapper));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(ApplicationBootstrapper));
 
         /// <summary>
         /// I'm tentatively using nginx to manage ssl forwarding.  The below modification to the behavior of the 

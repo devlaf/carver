@@ -9,7 +9,7 @@ namespace Carver.API
     {
         public void Configure(IApplicationBuilder app)
         {
-            app.UseOwin(x => x.UseNancy(opt => opt.Bootstrapper = new StatelessAuthBootstrapper()));
+            app.UseOwin(x => x.UseNancy(opt => opt.Bootstrapper = new ApplicationBootstrapper()));
         }
     }
 }

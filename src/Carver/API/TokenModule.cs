@@ -27,6 +27,9 @@ namespace Carver.API
             {
                 this.RequiresClaims(c => checkForClaims(c, new List<UserGroup> { UserGroup.user, UserGroup.admin } ));
 
+                if (this.Request.Form.description == null)
+                    return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "description field missing." };
+
                 try
                 {
                     var token = await TokenActions.CreateNewToken(this.Request.Form.Description);
