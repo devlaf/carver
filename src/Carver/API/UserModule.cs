@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using Carver.DataStore;
 using Carver.Users;
 using Nancy;
 using Nancy.Security;
@@ -40,7 +41,7 @@ namespace Carver.API
 
                 try
                 {
-                    await UserActions.CreateNewUser(username, password, email, UserGroup.user);
+                    await UserActions.CreateNewUser(DataStoreFactory.UserDataStore, username, password, email, UserGroup.user);
                 }
                 catch (Exception ex)
                 {

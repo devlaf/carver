@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using Carver.DataStore;
 using Carver.Tokens;
 using Carver.Users;
 using log4net;
@@ -33,7 +34,7 @@ namespace Carver.API
 
                 try
                 {
-                    var token = await TokenActions.CreateNewToken(this.Request.Form.Description);
+                    var token = await TokenActions.CreateNewToken(DataStoreFactory.TokenDataStore, this.Request.Form.Description);
                     return token;
                 }
                 catch (Exception)
@@ -46,7 +47,7 @@ namespace Carver.API
             {
                 this.RequiresClaims(c => checkForClaims(c, new List<UserGroup> { UserGroup.validator, UserGroup.admin }));
 
-                if (await TokenActions.ValidTokenExists(ctx["token"]))
+                if (await TokenActions.ValidTokenExists(DataStoreFactory.TokenDataStore, ctx["token"]))
                     return HttpStatusCode.OK;
 
                 return HttpStatusCode.NotFound;

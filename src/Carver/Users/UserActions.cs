@@ -9,7 +9,7 @@ namespace Carver.Users
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(UserActions));
 
-        internal static async Task<long> CreateNewUser(string username, string password, string email, UserGroup role)
+        internal static async Task<long> CreateNewUser(IUserStore userStore, string username, string password, string email, UserGroup role)
         {
             ValidateEmail(email);
             var userIdentity = await UserAuthentication.GenerateUserCreds(username, password);
@@ -17,20 +17,18 @@ namespace Carver.Users
             Log.Info(string.Format("Creating new user [username={0} email={1}, role={2}", username, email,
                 Enum.GetName(typeof(UserGroup), role)));
 
-            IUserStore userStore = new PostgresDataStore();
             return await userStore.CreateUser(new User(username, email, userIdentity.HashedPassword, 
                 userIdentity.Salt, userIdentity.HashingIterations, role, DateTime.Now, true));
         }
 
-        public static async Task UpdateUserPassword(string username, string oldPassword, string newPassword)
+        public static async Task UpdateUserPassword(IUserStore userStore, string username, string oldPassword, string newPassword)
         {
-            if (!await ValidateUser(username, oldPassword))
+            if (!await ValidateUser(userStore, username, oldPassword))
                 throw new ArgumentException("Specified username/oldPassword is not correct.");
 
             var newUserIdentity = await UserAuthentication.GenerateUserCreds(username, newPassword);
             Log.Info(string.Format("Updating password for user " + username));
 
-            IUserStore userStore = new PostgresDataStore();
             var currentUser = (await userStore.GetUser(username)).Value;
             var currentUserId = (await userStore.GetUserId(username)).Value;
 
@@ -39,10 +37,8 @@ namespace Carver.Users
                 currentUser.UserGroup, currentUser.CreationDate, currentUser.Active));
         }
 
-        public static async Task<bool> ValidateUser(string username, string password)
+        public static async Task<bool> ValidateUser(IUserStore userStore, string username, string password)
         {
-            IUserStore userStore = new PostgresDataStore();
-
             var user = await userStore.GetUser(username);
 
             if (user == null)
@@ -57,10 +53,8 @@ namespace Carver.Users
             return await (UserAuthentication.ConfirmUserPassword(userCreds, password));
         }
 
-        public static async Task<User?> GetUser(string username)
+        public static async Task<User?> GetUser(IUserStore userStore, string username)
         {
-            IUserStore userStore = new PostgresDataStore();
-
             return await userStore.GetUser(username);
         }
 

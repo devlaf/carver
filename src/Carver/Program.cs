@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Carver.API;
-using Carver.DataStore;
-using Carver.Users;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+
+[assembly: InternalsVisibleTo("CarverTests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace Carver
 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using Carver.DataStore;
 using Carver.Users;
 
 namespace Carver.API
@@ -31,17 +32,17 @@ namespace Carver.API
             if (!Tokens.TryGetValue(apiKey, out username))
                 return null;
 
-            var user = await UserActions.GetUser(username);
+            var user = await UserActions.GetUser(DataStoreFactory.UserDataStore, username);
 
             return new ClaimsPrincipal(new GenericIdentity(user?.Username, Enum.GetName(typeof(UserGroup), user?.UserGroup)));
         }
 
         public static async Task<string> ValidateUser(string username, string password)
         {
-            if (!await UserActions.ValidateUser(username, password))
+            if (!await UserActions.ValidateUser(DataStoreFactory.UserDataStore, username, password))
                 return null;
 
-            var user = await UserActions.GetUser(username);
+            var user = await UserActions.GetUser(DataStoreFactory.UserDataStore, username);
             var apiKey = Guid.NewGuid().ToString();
             Tokens.Add(apiKey, user?.Username);
 
