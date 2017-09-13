@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using log4net;
 using Nancy;
 using Nancy.Conventions;
+using Carver.Config;
 
 namespace Carver.API
 {
     /// <summary>
     /// Establish the static content server (default directory: {executing_assembly_dir}/static_content/).
-    /// Static content must exist in a subdirectory of the applicaiton executable.  This is enforced 
+    /// Any static content must exist in a subdirectory of the application executable.  This is enforced 
     /// by the Nancy framework.
     /// </summary>
     partial class ApplicationBootstrapper : DefaultNancyBootstrapper
@@ -19,13 +17,12 @@ namespace Carver.API
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)
         {
-            // Note that changing the static content directory via configuration will require a application restart.
             var subdir = StaticContentRelativePath;
 
             if (Directory.Exists(subdir))
-                Log.Info($"The static content directory was established at [{subdir}].");
+                Log.Info($"Static content directory was established at [{subdir}].");
             else
-                Log.Error($"The static content directory, specified at {subdir}] by configuration, does not exist.  Static Content requests will likely fail.");
+                Log.Error($"Static content directory, specified at [{subdir}] by configuration, does not exist.");
 
             nancyConventions.StaticContentsConventions.Add(StaticContentConventionBuilder.AddDirectory("static_content", subdir));
             base.ConfigureConventions(nancyConventions);
@@ -33,7 +30,7 @@ namespace Carver.API
     }
 
     /// <summary>
-    /// We have to handle the index.html file seperately from the rest of static content, according to nancy conventions.
+    /// Need to handle the index.html file seperately from the rest of static content, according to nancy conventions.
     /// </summary>
     public class IndexModule : NancyModule
     {

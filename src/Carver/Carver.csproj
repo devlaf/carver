@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <NoWarn>CS1046</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,22 +11,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.50.2" />
+    <PackageReference Include="Dapper" Version="1.50.5" />
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Owin" Version="1.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Owin" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Authentication.Stateless" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Npgsql" Version="3.2.4.1" />
+    <PackageReference Include="Npgsql" Version="4.0.3" />
+    <PackageReference Include="ServiceStack.Redis.Core" Version="5.4.0" />
+    <PackageReference Include="System.Reactive.Core" Version="4.1.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.json">
+    <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 
 </Project>

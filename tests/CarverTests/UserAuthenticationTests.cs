@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Carver.Users;
+using Carver.Data.UserStore;
 using Xunit;
 
 namespace CarverTests

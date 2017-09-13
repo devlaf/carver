@@ -2,20 +2,17 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Carver.Config;
 using log4net;
 using Npgsql;
 using Dapper;
 
-namespace Carver
+namespace Carver.Data
 {
     internal class PostgresDBConnection
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PostgresDBConnection));
 
-        /// <summary> On-demand postgres connection </summary>
-        /// <remarks> This value is not cached in memory; we'll allow a new connection to be made for each request
-        /// and let Postgres manage connection pooling.  This makes threading etc. simpler here, and allows for a
-        /// dynamic response to config updates. </remarks>
         public IDbConnection Connection => new NpgsqlConnection(BuildConnectionString());
 
         private static string BuildConnectionString()

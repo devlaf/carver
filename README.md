@@ -3,13 +3,12 @@
 * [Building](#building)
 * [Configuration](#configuration)
 * [API](#api)
-* [TODO](#todo)
 
 ## What is this?
-A simple-ish token-based authentication service.  Credentialed users can log into this system, create a new persistent token, and  query to find out if an arbitrary token was actually issued by this application.
+A simple token-based auth service. Credentialed users can create persistent tokens, and query/manage them. This was originally designed to enable offloading some authentication stuff from a pass-through nginx setup.
 
 ## Building
-This is designed to build and run on top of dotnet core.  Using the dotnet CLI tools, run:
+The project and tests are designed to build and run on top of dotnet core.  Using the dotnet CLI tools, run:
 
 ```
 dotnet restore
@@ -22,7 +21,7 @@ dotnet run --project Carver.csproj
 ```
 
 ## Configuration
-Carver requires a running postgres instance.  You can adapt carver to your postgres settings by specifying the following in an appsettings.json:
+Carver requires a backing postgres store. Settings for that can be configured by specifying the following in an appsettings.json:
 
 ```
 "db_server" (default=127.0.0.1)
@@ -38,7 +37,16 @@ Carver requires a running postgres instance.  You can adapt carver to your postg
 "db_connection_lifetime_sec" (default=15)
 ```
 
-Configure the interface on which carver listens by setting the following in an appsettings.json:
+This also needs a local redis setup. Those settings are again in appsettings.json:
+```
+"redis_client_id"
+"redis_password"
+"redis_hostname"
+"redis_port"
+"redis_use_ssl"
+```
+
+Configure the interface on which carver listens by setting the following in appsettings.json:
 
 ```
 "api_host"
@@ -46,11 +54,11 @@ Configure the interface on which carver listens by setting the following in an a
 ```
 
 ## API
-### Getting a session token (Logging in)
+### Logging in
 
 SSL: Required
 
-Permissions: user, validator, admin
+Permissions: n/a
 
 Request:
 
@@ -58,58 +66,108 @@ Request:
 
 Response:
 
-* 200 -- OK -- ```{ token=your_session_token }```
-* 400 -- request missing username or password
+On 200 returns: ```{ session_token=your_session_token }```
 
-### Invalidating a session token (Logging out)
-
-Just drop it client-side.
-
-### Creating a user
+### Invalidating your session token
 
 SSL: Required
 
-Permissions: admin
+Permissions: n/a
 
 Request:
 
-```curl -X POST https://{carver_ip}/users?api_token=my_session_token -d '{"username"="alice", "password"="p@ssword", "email"="alice@gmail.com"}'```
+```curl -X DELETE https://{carver_ip}/sessions?session_token={my_token}```
 
-Response:
-
-* 200 -- OK
-* 400 -- invalid username/password/email
-* 403 -- Invalid creds.  Check your api_token & permissions.
-
-### Creating a token
+### Create user
 
 SSL: Required
 
-Permissions: user, admin
+Permissions: manage-any-user
 
 Request:
 
-```curl -X POST https://{carver_ip}/tokens?api_token=my_session_token -d '{"description"="where_is_this_token_being_stored"}'```
+```curl -X POST https://{carver_ip}/users?session_token={my_token} -d '{"username"="alice", "password"="p@ssword", "email"="alice@gmail.com"}'```
 
 Response:
 
-* 200 -- OK -- ```{ "token":"the_token" } ```
-* 403 -- Invalid creds.  Check your api_token & permissions.
+On 200 returns, e.g.  ```{ user_id: 4 }```
 
-### Validate a token
+### Update user
 
-Permissions: validator, admin
+SSL: Required
+
+Permissions: manage-any-user, manage-self-user
 
 Request:
 
-```curl -X GET https://{carver_ip}/tokens/{token}?api_token=my_session_token```
+```curl -X POST https://{carver_ip}/users?session_token={my_token} -d '{"username"="alice", "old_password"="p@ssword", "new_password"="new_p@ssword", "email"="alice_new@gmail.com"}'```
 
 Response:
 
-* 200 -- Yeah that's a valid token
-* 404 -- Nope not a valid token
+On 200 returns, e.g. ```{ user_id: 4, username: "alice", email: "alice_new@gmail.com" }```
 
-## TODO
-- Token caching
-- Allow user updates
-- Expire session tokens
+### Get user permissions
+SSL: Required
+
+Permissions: manage-any-user, manage-self-user
+
+Request:
+
+```curl -X GET https://{carver_ip}/users/{user_id}/permissions?session_token={my_token}```
+
+Response:
+
+On 200 returns, e.g. ```{ ["manage-self-user", "verify-token", ...] }```
+
+### Ensure user permissions
+
+SSL: Required
+
+Permissions: manage-any-user
+
+Request:
+
+```curl -X POST https://{carver_ip}/users/{user_id}/permissions?session_token={my_token} -d '{["permission_name_1", "permission_name_2"]}'```
+
+
+### Remove user permissions
+
+SSL: Required
+
+Permissions: manage-any-user
+
+Request:
+
+```curl -X DELETE https://{carver_ip}/users/{user_id}/permissions?session_token={my_token} -d '{["permission_name_1", "permission_name_2"]}'```
+
+### Create token
+
+SSL: Required
+
+Permissions: create-token
+
+Request:
+
+```curl -X POST https://{carver_ip}/tokens?session_token={my_token} -d '{"description"="what's it for?", "expiration" = 12345}'```
+
+* expiration is optional, in epoch_milli
+
+Response:
+
+On 200 returns, e.g. ```{ "token":"the_token" } ```
+
+### Validate token
+
+Permissions: validate-token
+
+Request:
+
+```curl -X POST https://{carver_ip}/tokens/verify?session_token={my_token} -d '{"token"="abed-54-323d-e3lk"}'```
+
+### Revoke token
+
+Permissions: revoke-token
+
+Request:
+
+```curl -X POST https://{carver_ip}/tokens/revoke?session_token={my_token} -d '{"token"="abed-54-323d-e3lk"}'```

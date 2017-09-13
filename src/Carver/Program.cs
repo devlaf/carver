@@ -1,8 +1,8 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using Carver.API;
-using Microsoft.AspNetCore.Hosting;
+using Carver.Jobs.OneOffJobs;
+using Carver.Jobs.CronJobs;
 
 [assembly: InternalsVisibleTo("CarverTests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -13,17 +13,33 @@ namespace Carver
     {
         static void Main(string[] args)
         {
-            string ip = Configuration.GetValue<string>("api_host", "http://localhost");
-            int port = Configuration.GetValue<int>("api_port", 8086);
+            if (args.Length == 0)
+            {
+                PrintUsage();
+                return;
+            }
+            
+            switch (args[0].ToLower())
+            {
+                case "job":
+                    OneOffJobRunner.Run(args);
+                    break;
+                case "cronjob":
+                    CronJobRunner.Run(args);
+                    break;
+                case "service":
+                    ServiceRunner.Run();
+                    break;
+                case "help":
+                default:
+                    PrintUsage();
+                    break;
+            }
+        }
 
-            var host = new WebHostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseKestrel()
-                .UseStartup<Startup>()
-                .UseUrls($"{ip}:{port}")
-                .Build();
-
-            host.Run();
+        private static void PrintUsage()
+        {
+            Console.WriteLine("dotnet run -- [service | job | cronjob]");
         }
     }
 }

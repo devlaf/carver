@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using Carver.DataStore;
-using Carver.Tokens;
-using Carver.Users;
 using log4net;
 using Nancy;
 using Nancy.Security;
+using Nancy.ModelBinding;
+using Carver.Data;
+using Carver.Data.Models;
+using Carver.Data.TokenStore;
 
 namespace Carver.API
 {
@@ -15,43 +16,58 @@ namespace Carver.API
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(TokenModule));
 
+        private readonly ITokenStore<string> TokenStore = DataStoreFactory.AppTokenDataStore;
+
         public TokenModule() : base("/tokens")
         {
-            // This module deliberately does not require SSL, as the expectation is that any users authorized with 
-            // validate credentials is on the same physical machine.
+            this.RequiresHttps();
+            this.RequiresAuthentication();
 
-            var checkForClaims = new Func<Claim, List<UserGroup>, bool>((claim, allowed) =>
+            var VerifyClaims = new Func<Claim, List<Permission>, bool>((claim, allowed) =>
             {
-                return allowed.Select(x => Enum.GetName(typeof(UserGroup), x)).Contains(claim.Subject.AuthenticationType);
+                return allowed.Select(permission => Enum.GetName(typeof(Permission), permission)).Contains(claim.Value);
             });
 
             Post("/", async (ctx, ct) =>
             {
-                this.RequiresClaims(c => checkForClaims(c, new List<UserGroup> { UserGroup.user, UserGroup.admin } ));
+                this.RequiresClaims(c => VerifyClaims(c, new List<Permission> { Permission.CreateToken } ));
+                
+                TokenData body = this.Bind<TokenData>();
 
-                if (this.Request.Form.description == null)
-                    return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "description field missing." };
+                DateTimeOffset? expiration = null;
+                if (body.expiration_epoch_milli.HasValue)
+                    expiration = DateTimeOffset.FromUnixTimeMilliseconds(body.expiration_epoch_milli.Value);
 
-                try
-                {
-                    var token = await TokenActions.CreateNewToken(DataStoreFactory.TokenDataStore, this.Request.Form.Description);
-                    return token;
-                }
-                catch (Exception)
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
+                return await TokenStore.Create(body.description, expiration);
             });
 
-            Get("/{token}", async (ctx, ct) =>
+            Post("/verify", async (ctx, ct) =>
             {
-                this.RequiresClaims(c => checkForClaims(c, new List<UserGroup> { UserGroup.validator, UserGroup.admin }));
+                this.RequiresClaims(c => VerifyClaims(c, new List<Permission> { Permission.VerifyToken }));
 
-                if (await TokenActions.ValidTokenExists(DataStoreFactory.TokenDataStore, ctx["token"]))
+                string token = this.Bind<string>();
+
+                if (await TokenStore.Exists(token))
                     return HttpStatusCode.OK;
 
                 return HttpStatusCode.NotFound;
             });
+
+            Post("/revoke", async (ctx, ct) =>
+            {
+                this.RequiresClaims(c => VerifyClaims(c, new List<Permission> { Permission.VerifyToken }));
+
+                string token = this.Bind<string>();
+                await TokenStore.Invalidate(token);
+
+                return HttpStatusCode.OK;
+            });
+        }
+
+        private class TokenData
+        {
+            public string description { get; set; }
+            public long? expiration_epoch_milli { get; set; }
         }
     }
 }

@@ -1,58 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using Carver.DataStore;
-using Carver.Users;
+using Carver.Data;
+using Carver.Data.Models;
+using Carver.Data.UserStore;
+using Carver.Data.TokenStore;
 
 namespace Carver.API
 {
     internal class SessionTokens
     {
-        private static Dictionary<string, string> Tokens = new Dictionary<string, string>();
+        private static readonly Lazy<SessionTokens> lazySingleton = new Lazy<SessionTokens>(() => new SessionTokens());
 
-        #region Singleton
+        private static SessionTokens Instance => lazySingleton.Value;
 
-        private static readonly Lazy<SessionTokens> lazyConfig = new Lazy<SessionTokens>(() => new SessionTokens());
+        private readonly ITokenStore<UserPermissions> TokenCache = DataStoreFactory.SessionTokenDataStore;
+        private readonly IUserStore UserStore = DataStoreFactory.UserDataStore;
 
-        private static SessionTokens Instance => lazyConfig.Value;
-
-        /// <summary> Static constructor required so compiler does not tag with beforefieldinit </summary>
         static SessionTokens() { }
 
-        #endregion
-
-        public static async Task<ClaimsPrincipal> GetUserClaimsFromApiKey(string apiKey)
+        public async Task<ClaimsPrincipal> GetUserClaimsFromSessionToken(string sessionToken)
         {
-            if (apiKey == null)
+            if (sessionToken == null)
                 return null;
 
-            string username;
-            if (!Tokens.TryGetValue(apiKey, out username))
+            var userPermissions = await TokenCache.Lookup(sessionToken);
+
+            if (userPermissions == null)
                 return null;
 
-            var user = await UserActions.GetUser(DataStoreFactory.UserDataStore, username);
+            var identity = new GenericIdentity($"{userPermissions.UserId}");
+            var claims = userPermissions.Permissions.Select(permission => Enum.GetName(typeof(Permission), permission)).ToArray();
 
-            return new ClaimsPrincipal(new GenericIdentity(user?.Username, Enum.GetName(typeof(UserGroup), user?.UserGroup)));
+            return new ClaimsPrincipal(new GenericPrincipal(identity, claims));
         }
 
-        public static async Task<string> ValidateUser(string username, string password)
+        public async Task<string> ValidateUser(string username, string password)
         {
-            if (!await UserActions.ValidateUser(DataStoreFactory.UserDataStore, username, password))
+            if (!await UserStore.ValidateUser(username, password))
                 return null;
 
-            var user = await UserActions.GetUser(DataStoreFactory.UserDataStore, username);
-            var apiKey = Guid.NewGuid().ToString();
-            Tokens.Add(apiKey, user?.Username);
+            var user = await UserStore.GetUser(username);
+            var permissions = await UserStore.GetPermissionsForUser(user.Value.Id);
 
-            return apiKey;
+            return await TokenCache.Create(permissions, null);
         }
 
-        public static void RemoveApiKey(string apiKey)
+        public async void InvalidateToken(string sessionToken)
         {
-            if (Tokens.ContainsKey(apiKey))
-                Tokens.Remove(apiKey);
+            await TokenCache.Invalidate(sessionToken);
         }
     }
 }

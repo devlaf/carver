@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 
-namespace Carver
+namespace Carver.Config
 {
     /// <summary>
     /// Configuration info, managed via the appsettings.json file.
     /// </summary>
     internal class Configuration
     {
-        #region Singleton Config Implementation
-
         private static readonly Lazy<IConfigurationRoot> lazyConfig = new Lazy<IConfigurationRoot>(() =>
             new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -21,11 +18,7 @@ namespace Carver
 
         private static IConfigurationRoot Config => lazyConfig.Value;
 
-        /// <summary> Static constructor required so compiler does not tag with beforefieldinit </summary>
         static Configuration() { }
-
-        #endregion
-
 
         /// <summary>Get the config value associated with the given key.</summary>
         /// <returns>Value of type T associated with the given KEY</returns>
