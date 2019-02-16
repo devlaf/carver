@@ -157,6 +157,7 @@ Response:
 On 200 returns, e.g. ```{ "token":"the_token" } ```
 
 ### Validate token
+SSL: Required
 
 Permissions: validate-token
 
@@ -165,6 +166,7 @@ Request:
 ```curl -X POST https://{carver_ip}/tokens/verify?session_token={my_token} -d '{"token"="abed-54-323d-e3lk"}'```
 
 ### Revoke token
+SSL: Required
 
 Permissions: revoke-token
 
